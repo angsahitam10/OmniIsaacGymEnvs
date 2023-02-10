@@ -70,7 +70,11 @@ class AntLocomotionTask(LocomotionTask):
         return
 
     def get_ant(self):
-        ant = Ant(prim_path=self.default_zero_env_path + "/Ant", name="Ant", translation=self._ant_positions)
+        ant = Ant(
+            prim_path=f"{self.default_zero_env_path}/Ant",
+            name="Ant",
+            translation=self._ant_positions,
+        )
         self._sim_config.apply_articulation_settings("Ant", get_prim_at_path(ant.prim_path), self._sim_config.parse_actor_config("Ant"))
 
     def get_robot(self):

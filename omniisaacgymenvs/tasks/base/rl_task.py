@@ -116,7 +116,7 @@ class RLTask(BaseTask):
 
         super().set_up_scene(scene)
 
-        collision_filter_global_paths = list()
+        collision_filter_global_paths = []
         if self._sim_config.task_config["sim"].get("add_ground_plane", True):
             self._ground_plane_path = "/World/defaultGroundPlane"
             collision_filter_global_paths.append(self._ground_plane_path)

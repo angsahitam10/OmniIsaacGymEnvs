@@ -37,7 +37,7 @@ def update_reference(source_prim_path, source_reference_path, target_reference_p
     stage = omni.usd.get_context().get_stage()
 
     prims = [stage.GetPrimAtPath(source_prim_path)]
-    while len(prims) > 0:
+    while prims:
         prim = prims.pop(0)
         prim_spec = stage.GetRootLayer().GetPrimAtPath(prim.GetPath())
         reference_list = prim_spec.referenceList
@@ -48,7 +48,7 @@ def update_reference(source_prim_path, source_reference_path, target_reference_p
                     prim.GetReferences().RemoveReference(ref)
                     prim.GetReferences().AddReference(assetPath=target_reference_path, primPath=prim.GetPath())
 
-        prims = prims + prim.GetChildren()
+        prims += prim.GetChildren()
 
 def create_parent_xforms(asset_usd_path, source_prim_path, save_as_path=None):
     """ Adds a new UsdGeom.Xform prim for each Mesh/Geometry prim under source_prim_path.
@@ -64,17 +64,17 @@ def create_parent_xforms(asset_usd_path, source_prim_path, save_as_path=None):
 
     prims = [stage.GetPrimAtPath(source_prim_path)]
     edits = Sdf.BatchNamespaceEdit()
-    while len(prims) > 0:
+    while prims:
         prim = prims.pop(0)
         print(prim)
         if prim.GetTypeName() in ["Mesh", "Capsule", "Sphere", "Box"]:
-            new_xform = UsdGeom.Xform.Define(stage, str(prim.GetPath()) + "_xform")
+            new_xform = UsdGeom.Xform.Define(stage, f"{str(prim.GetPath())}_xform")
             print(prim, new_xform)
             edits.Add(Sdf.NamespaceEdit.Reparent(prim.GetPath(), new_xform.GetPath(), 0))
             continue
 
         children_prims = prim.GetChildren()
-        prims = prims + children_prims
+        prims += children_prims
 
     stage.GetRootLayer().Apply(edits)
 
@@ -104,11 +104,10 @@ def convert_asset_instanceable(asset_usd_path, source_prim_path, save_as_path=No
     omni.client.copy(asset_usd_path, instance_usd_path)
     omni.usd.get_context().open_stage(asset_usd_path)
     stage = omni.usd.get_context().get_stage()
-    
+
     prims = [stage.GetPrimAtPath(source_prim_path)]
-    while len(prims) > 0:
-        prim = prims.pop(0)
-        if prim:
+    while prims:
+        if prim := prims.pop(0):
             if prim.GetTypeName() in ["Mesh", "Capsule", "Sphere", "Box"]:
                 parent_prim = prim.GetParent()
                 if parent_prim and not parent_prim.IsInstance():
@@ -117,7 +116,7 @@ def convert_asset_instanceable(asset_usd_path, source_prim_path, save_as_path=No
                     continue
 
             children_prims = prim.GetChildren()
-            prims = prims + children_prims
+            prims += children_prims
 
     if save_as_path is None:
         omni.usd.get_context().save_stage()

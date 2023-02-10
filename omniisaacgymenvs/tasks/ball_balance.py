@@ -86,13 +86,17 @@ class BallBalanceTask(RLTask):
         return
 
     def get_balance_table(self):
-        balance_table = BalanceBot(prim_path=self.default_zero_env_path + "/BalanceBot", name="BalanceBot", translation=self._table_position)
+        balance_table = BalanceBot(
+            prim_path=f"{self.default_zero_env_path}/BalanceBot",
+            name="BalanceBot",
+            translation=self._table_position,
+        )
         self._sim_config.apply_articulation_settings("table", get_prim_at_path(balance_table.prim_path), self._sim_config.parse_actor_config("table"))
 
     def add_ball(self):
         ball = DynamicSphere(
-            prim_path=self.default_zero_env_path + "/Ball/ball", 
-            translation=self._ball_position, 
+            prim_path=f"{self.default_zero_env_path}/Ball/ball",
+            translation=self._ball_position,
             name="ball_0",
             radius=self._ball_radius,
             color=torch.tensor([0.9, 0.6, 0.2]),
@@ -108,7 +112,7 @@ class BallBalanceTask(RLTask):
             for j, leg_offset in enumerate([(0.4, 0, height), (-0.2, 0.34641, height), (-0.2, -0.34641, height)]):
                 # fix the legs to ground
                 leg_path = f"{base_path}/lower_leg{j}"
-                ground_joint_path = leg_path + "_ground"
+                ground_joint_path = f"{leg_path}_ground"
                 env_pos = stage.GetPrimAtPath(f"{self.default_base_env_path}/env_{i}").GetAttribute("xformOp:translate").Get()
                 anchor_pos = env_pos + Gf.Vec3d(*leg_offset)
                 self.fix_to_ground(stage, ground_joint_path, leg_path, anchor_pos)
@@ -160,12 +164,7 @@ class BallBalanceTask(RLTask):
         self.ball_positions = ball_positions
         self.ball_linvels = ball_linvels
 
-        observations = {
-            "ball_balance": {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {"ball_balance": {"obs_buf": self.obs_buf}}
 
     def pre_physics_step(self, actions) -> None:
         if not self.anchored:

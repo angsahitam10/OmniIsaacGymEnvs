@@ -149,10 +149,8 @@ class Terrain:
                 end_y = self.border + (j + 1) * self.width_per_env_pixels
                 self.height_field_raw[start_x: end_x, start_y:end_y] = terrain.height_field_raw
 
-                robots_in_map = num_robots_per_map
                 if j < left_over:
-                    robots_in_map +=1
-
+                    robots_in_map = num_robots_per_map + 1
                 env_origin_x = (i + 0.5) * self.env_length
                 env_origin_y = (j + 0.5) * self.env_width
                 x1 = int((self.env_length/2. - 1) / self.horizontal_scale)

@@ -148,9 +148,11 @@ class InHandManipulationTask(RLTask):
         self.object_start_translation[2] += pose_dz
         self.object_start_orientation = torch.tensor([1.0, 0.0, 0.0, 0.0], device=self.device)
         self.object_usd_path = f"{self._assets_root_path}/Isaac/Props/Blocks/block_instanceable.usd"
-        add_reference_to_stage(self.object_usd_path, self.default_zero_env_path + "/object")
+        add_reference_to_stage(
+            self.object_usd_path, f"{self.default_zero_env_path}/object"
+        )
         obj = XFormPrim(
-            prim_path=self.default_zero_env_path + "/object/object",
+            prim_path=f"{self.default_zero_env_path}/object/object",
             name="object",
             translation=self.object_start_translation,
             orientation=self.object_start_orientation,
@@ -163,13 +165,15 @@ class InHandManipulationTask(RLTask):
         self.goal_start_translation = self.object_start_translation + self.goal_displacement_tensor
         self.goal_start_translation[2] -= 0.04
         self.goal_start_orientation = torch.tensor([1.0, 0.0, 0.0, 0.0], device=self.device)
-        add_reference_to_stage(self.object_usd_path, self.default_zero_env_path + "/goal")
+        add_reference_to_stage(
+            self.object_usd_path, f"{self.default_zero_env_path}/goal"
+        )
         goal = XFormPrim(
-            prim_path=self.default_zero_env_path + "/goal",
+            prim_path=f"{self.default_zero_env_path}/goal",
             name="goal",
             translation=self.goal_start_translation,
             orientation=self.goal_start_orientation,
-            scale=self.object_scale
+            scale=self.object_scale,
         )
         self._sim_config.apply_articulation_settings("goal", get_prim_at_path(goal.prim_path), self._sim_config.parse_actor_config("goal_object"))
 
@@ -241,9 +245,7 @@ class InHandManipulationTask(RLTask):
         reset_buf = self.reset_buf.clone()
 
         # if only goals need reset, then call set API
-        if len(goal_env_ids) > 0 and len(env_ids) == 0:
-            self.reset_target_pose(goal_env_ids)
-        elif len(goal_env_ids) > 0:
+        if len(goal_env_ids) > 0:
             self.reset_target_pose(goal_env_ids)
         if len(env_ids) > 0:
             self.reset_idx(env_ids)
@@ -258,7 +260,7 @@ class InHandManipulationTask(RLTask):
             self.cur_targets[:, self.actuated_dof_indices] = scale(self.actions,
                 self.hand_dof_lower_limits[self.actuated_dof_indices], self.hand_dof_upper_limits[self.actuated_dof_indices])
             self.cur_targets[:, self.actuated_dof_indices] = self.act_moving_average * self.cur_targets[:, self.actuated_dof_indices] + \
-                (1.0 - self.act_moving_average) * self.prev_targets[:, self.actuated_dof_indices]
+                    (1.0 - self.act_moving_average) * self.prev_targets[:, self.actuated_dof_indices]
             self.cur_targets[:, self.actuated_dof_indices] = tensor_clamp(self.cur_targets[:, self.actuated_dof_indices],
                 self.hand_dof_lower_limits[self.actuated_dof_indices], self.hand_dof_upper_limits[self.actuated_dof_indices])
 

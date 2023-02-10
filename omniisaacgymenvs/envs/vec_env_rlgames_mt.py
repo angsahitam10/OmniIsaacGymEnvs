@@ -60,11 +60,8 @@ class VecEnvRLGamesMT(VecEnvRLGames, VecEnvMT):
 
         if self._task.randomize_observations:
             self._obs = self._task._dr_randomizer.apply_observations_randomization(observations=self._obs, reset_buf=self._task.reset_buf)
-        
-        self._obs = torch.clamp(self._obs, -self._task.clip_obs, self._task.clip_obs)
-        
-        obs_dict = {}
-        obs_dict["obs"] = self._obs
-        obs_dict["states"] = self._states
 
+        self._obs = torch.clamp(self._obs, -self._task.clip_obs, self._task.clip_obs)
+
+        obs_dict = {"obs": self._obs, "states": self._states}
         return obs_dict, self._rew, self._resets, self._extras

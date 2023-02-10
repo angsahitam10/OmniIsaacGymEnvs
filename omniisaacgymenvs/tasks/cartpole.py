@@ -73,7 +73,11 @@ class CartpoleTask(RLTask):
         return
 
     def get_cartpole(self):
-        cartpole = Cartpole(prim_path=self.default_zero_env_path + "/Cartpole", name="Cartpole", translation=self._cartpole_positions)
+        cartpole = Cartpole(
+            prim_path=f"{self.default_zero_env_path}/Cartpole",
+            name="Cartpole",
+            translation=self._cartpole_positions,
+        )
         # applies articulation settings from the task configuration yaml file
         self._sim_config.apply_articulation_settings("Cartpole", get_prim_at_path(cartpole.prim_path), self._sim_config.parse_actor_config("Cartpole"))
 
@@ -91,12 +95,7 @@ class CartpoleTask(RLTask):
         self.obs_buf[:, 2] = pole_pos
         self.obs_buf[:, 3] = pole_vel
 
-        observations = {
-            self._cartpoles.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {self._cartpoles.name: {"obs_buf": self.obs_buf}}
 
     def pre_physics_step(self, actions) -> None:
         reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)

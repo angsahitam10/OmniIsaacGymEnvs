@@ -58,7 +58,7 @@ class Ingenuity(Robot):
             assets_root_path = get_assets_root_path()
             if assets_root_path is None:
                 carb.log_error("Could not find Isaac Sim assets folder")
-            self._usd_path = assets_root_path + "/Isaac/Robots/Ingenuity/ingenuity.usd"
+            self._usd_path = f"{assets_root_path}/Isaac/Robots/Ingenuity/ingenuity.usd"
 
         add_reference_to_stage(self._usd_path, prim_path)
         scale = torch.tensor([0.01, 0.01, 0.01])

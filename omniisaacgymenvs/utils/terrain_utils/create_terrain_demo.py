@@ -122,11 +122,13 @@ class TerrainCreation(BaseTask):
         add_terrain_to_stage(stage=self._stage, vertices=vertices, triangles=triangles, position=position, orientation=orientation)
 
     def get_ball(self):
-        ball = DynamicSphere(prim_path=self.default_zero_env_path + "/ball",
-                             name="ball",
-                             translation=np.array([0.0, 0.0, 1.0]),
-                             mass=0.5,
-                             radius=0.2,)
+        ball = DynamicSphere(
+            prim_path=f"{self.default_zero_env_path}/ball",
+            name="ball",
+            translation=np.array([0.0, 0.0, 1.0]),
+            mass=0.5,
+            radius=0.2,
+        )
     
     def post_reset(self):
         for i in range(self._num_envs):
@@ -163,16 +165,12 @@ if __name__ == "__main__":
                                             num_per_row=num_per_row,
                                             env_spacing=env_spacing,
                                             )
-                            
+
     world.add_task(terrain_creation_task)
     world.reset()
 
     while simulation_app.is_running():
-        if world.is_playing():
-            if world.current_time_step_index == 0:
-                world.reset(soft=True)
-            world.step(render=True)
-        else:
-            world.step(render=True)
-
+        if world.is_playing() and world.current_time_step_index == 0:
+            world.reset(soft=True)
+        world.step(render=True)
     simulation_app.close()

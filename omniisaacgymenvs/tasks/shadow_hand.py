@@ -56,7 +56,7 @@ class ShadowHandTask(InHandManipulationTask):
         assert self.object_type in ["block"]
 
         self.obs_type = self._task_cfg["env"]["observationType"]
-        if not (self.obs_type in ["openai", "full_no_vel", "full", "full_state"]):
+        if self.obs_type not in ["openai", "full_no_vel", "full", "full_state"]:
             raise Exception(
                 "Unknown type of observations!\nobservationType should be one of: [openai, full_no_vel, full, full_state]")
         print("Obs type:", self.obs_type)
@@ -77,10 +77,7 @@ class ShadowHandTask(InHandManipulationTask):
         self.object_scale = torch.tensor([1.0, 1.0, 1.0])
         self.force_torque_obs_scale = 10.0
 
-        num_states = 0
-        if self.asymmetric_obs:
-            num_states = 187
-
+        num_states = 187 if self.asymmetric_obs else 0
         self._num_observations = self.num_obs_dict[self.obs_type]
         self._num_actions = 20
         self._num_states = num_states
@@ -93,9 +90,9 @@ class ShadowHandTask(InHandManipulationTask):
         hand_start_orientation = torch.tensor([0.0, 0.0, -0.70711, 0.70711], device=self.device)
 
         shadow_hand = ShadowHand(
-            prim_path=self.default_zero_env_path + "/shadow_hand", 
+            prim_path=f"{self.default_zero_env_path}/shadow_hand",
             name="shadow_hand",
-            translation=hand_start_translation, 
+            translation=hand_start_translation,
             orientation=hand_start_orientation,
         )
         self._sim_config.apply_articulation_settings(
@@ -136,16 +133,11 @@ class ShadowHandTask(InHandManipulationTask):
             self.compute_full_state(False)
         else:
             print("Unkown observations type!")
-        
+
         if self.asymmetric_obs:
             self.compute_full_state(True)
 
-        observations = {
-            self._hands.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {self._hands.name: {"obs_buf": self.obs_buf}}
     
 
     def compute_fingertip_observations(self, no_vel=False):

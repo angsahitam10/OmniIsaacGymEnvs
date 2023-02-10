@@ -117,14 +117,17 @@ class AnymalTerrainDemo(AnymalTerrainTask):
             print("Multiple prims are selected. Please only select one!")
         else:
             prim_splitted_path = selected_prim_paths[0].split("/")
-            if len(prim_splitted_path) >= 4 and prim_splitted_path[3][0:4] == "env_":
+            if (
+                len(prim_splitted_path) >= 4
+                and prim_splitted_path[3][:4] == "env_"
+            ):
                 self._selected_id = int(prim_splitted_path[3][4:])
                 if self._previous_selected_id != self._selected_id:
                     self.view_port.set_active_camera(self.camera_path)
                 self._update_camera()
             else:
                 print("The selected prim was not an Anymal")
-        
+
         if self._previous_selected_id is not None and self._previous_selected_id != self._selected_id:
             self.commands[self._previous_selected_id, 0] = np.random.uniform(self.command_x_range[0], self.command_x_range[1])
             self.commands[self._previous_selected_id, 1] = np.random.uniform(self.command_y_range[0], self.command_y_range[1])

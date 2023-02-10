@@ -57,7 +57,7 @@ class AllegroHandTask(InHandManipulationTask):
         assert self.object_type in ["block"]
 
         self.obs_type = self._task_cfg["env"]["observationType"]
-        if not (self.obs_type in ["full_no_vel", "full"]):
+        if self.obs_type not in ["full_no_vel", "full"]:
             raise Exception(
                 "Unknown type of observations!\nobservationType should be one of: [full_no_vel, full]")
         print("Obs type:", self.obs_type)
@@ -80,9 +80,9 @@ class AllegroHandTask(InHandManipulationTask):
         hand_start_orientation = torch.tensor([0.257551, 0.283045, 0.683330, -0.621782], device=self.device)
 
         allegro_hand = AllegroHand(
-            prim_path=self.default_zero_env_path + "/allegro_hand", 
+            prim_path=f"{self.default_zero_env_path}/allegro_hand",
             name="allegro_hand",
-            translation=hand_start_translation, 
+            translation=hand_start_translation,
             orientation=hand_start_orientation,
         )
         self._sim_config.apply_articulation_settings(
@@ -92,7 +92,10 @@ class AllegroHandTask(InHandManipulationTask):
         )
         allegro_hand_prim = self._stage.GetPrimAtPath(allegro_hand.prim_path)
         allegro_hand.set_allegro_hand_properties(stage=self._stage, allegro_hand_prim=allegro_hand_prim)
-        allegro_hand.set_motor_control_mode(stage=self._stage, allegro_hand_path=self.default_zero_env_path + "/allegro_hand")
+        allegro_hand.set_motor_control_mode(
+            stage=self._stage,
+            allegro_hand_path=f"{self.default_zero_env_path}/allegro_hand",
+        )
 
         pose_dy, pose_dz = -0.2, 0.06
         return hand_start_translation, pose_dy, pose_dz
@@ -112,13 +115,8 @@ class AllegroHandTask(InHandManipulationTask):
             self.compute_full_observations()
         else:
             print("Unkown observations type!")
-        
-        observations = {
-            self._hands.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+
+        return {self._hands.name: {"obs_buf": self.obs_buf}}
 
     def compute_full_observations(self, no_vel=False):
         if no_vel:

@@ -60,14 +60,20 @@ class AnymalTask(RLTask):
         self.action_scale = self._task_cfg["env"]["control"]["actionScale"]
 
         # reward scales
-        self.rew_scales = {}
-        self.rew_scales["lin_vel_xy"] = self._task_cfg["env"]["learn"]["linearVelocityXYRewardScale"]
-        self.rew_scales["ang_vel_z"] = self._task_cfg["env"]["learn"]["angularVelocityZRewardScale"]
-        self.rew_scales["lin_vel_z"] = self._task_cfg["env"]["learn"]["linearVelocityZRewardScale"]
-        self.rew_scales["joint_acc"] = self._task_cfg["env"]["learn"]["jointAccRewardScale"]
-        self.rew_scales["action_rate"] = self._task_cfg["env"]["learn"]["actionRateRewardScale"]
-        self.rew_scales["cosmetic"] = self._task_cfg["env"]["learn"]["cosmeticRewardScale"]
-
+        self.rew_scales = {
+            "lin_vel_xy": self._task_cfg["env"]["learn"][
+                "linearVelocityXYRewardScale"
+            ],
+            "ang_vel_z": self._task_cfg["env"]["learn"][
+                "angularVelocityZRewardScale"
+            ],
+            "lin_vel_z": self._task_cfg["env"]["learn"][
+                "linearVelocityZRewardScale"
+            ],
+            "joint_acc": self._task_cfg["env"]["learn"]["jointAccRewardScale"],
+            "action_rate": self._task_cfg["env"]["learn"]["actionRateRewardScale"],
+            "cosmetic": self._task_cfg["env"]["learn"]["cosmeticRewardScale"],
+        }
         # command ranges
         self.command_x_range = self._task_cfg["env"]["randomCommandVelocityRanges"]["linear_x"]
         self.command_y_range = self._task_cfg["env"]["randomCommandVelocityRanges"]["linear_y"]
@@ -92,8 +98,8 @@ class AnymalTask(RLTask):
         self.Kp = self._task_cfg["env"]["control"]["stiffness"]
         self.Kd = self._task_cfg["env"]["control"]["damping"]
 
-        for key in self.rew_scales.keys():
-            self.rew_scales[key] *= self.dt
+        for value in self.rew_scales.values():
+            value *= self.dt
 
         self._num_envs = self._task_cfg["env"]["numEnvs"]
         self._anymal_translation = torch.tensor([0.0, 0.0, 0.62])
@@ -115,14 +121,20 @@ class AnymalTask(RLTask):
         return
 
     def get_anymal(self):
-        anymal = Anymal(prim_path=self.default_zero_env_path + "/anymal", name="Anymal", translation=self._anymal_translation)
+        anymal = Anymal(
+            prim_path=f"{self.default_zero_env_path}/anymal",
+            name="Anymal",
+            translation=self._anymal_translation,
+        )
         self._sim_config.apply_articulation_settings("Anymal", get_prim_at_path(anymal.prim_path), self._sim_config.parse_actor_config("Anymal"))
 
         # Configure joint properties
         joint_paths = []
         for quadrant in ["LF", "LH", "RF", "RH"]:
-            for component, abbrev in [("HIP", "H"), ("THIGH", "K")]:
-                joint_paths.append(f"{quadrant}_{component}/{quadrant}_{abbrev}FE")
+            joint_paths.extend(
+                f"{quadrant}_{component}/{quadrant}_{abbrev}FE"
+                for component, abbrev in [("HIP", "H"), ("THIGH", "K")]
+            )
             joint_paths.append(f"base/{quadrant}_HAA")
         for joint_path in joint_paths:
             set_drive(f"{anymal.prim_path}/{joint_path}", "angular", "position", 0, 400, 40, 1000)
@@ -168,12 +180,7 @@ class AnymalTask(RLTask):
         )
         self.obs_buf[:] = obs
 
-        observations = {
-            self._anymals.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {self._anymals.name: {"obs_buf": self.obs_buf}}
 
     def pre_physics_step(self, actions) -> None:
         reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)

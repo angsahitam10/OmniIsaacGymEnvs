@@ -43,9 +43,7 @@ def download_ov_file(source_path, target_path):
     import omni.client
     result = omni.client.copy(source_path, target_path)
 
-    if result == omni.client.Result.OK:
-        return True
-    return False
+    return result == omni.client.Result.OK
 
 def break_ov_path(path):
     import omni.client

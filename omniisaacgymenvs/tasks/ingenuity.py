@@ -94,15 +94,19 @@ class IngenuityTask(RLTask):
         return
 
     def get_ingenuity(self):
-        copter = Ingenuity(prim_path=self.default_zero_env_path + "/Ingenuity", name="ingenuity", translation=self._ingenuity_position)
+        copter = Ingenuity(
+            prim_path=f"{self.default_zero_env_path}/Ingenuity",
+            name="ingenuity",
+            translation=self._ingenuity_position,
+        )
         self._sim_config.apply_articulation_settings("ingenuity", get_prim_at_path(copter.prim_path), self._sim_config.parse_actor_config("ingenuity"))
 
     def get_target(self):
         radius = 0.1
         color = torch.tensor([1, 0, 0])
         ball = DynamicSphere(
-            prim_path=self.default_zero_env_path + "/ball", 
-            translation=self._ball_position, 
+            prim_path=f"{self.default_zero_env_path}/ball",
+            translation=self._ball_position,
             name="target_0",
             radius=radius,
             color=color,
@@ -124,12 +128,7 @@ class IngenuityTask(RLTask):
         self.obs_buf[..., 7:10] = root_linvels / 2
         self.obs_buf[..., 10:13] = root_angvels / math.pi
 
-        observations = {
-            self._copters.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {self._copters.name: {"obs_buf": self.obs_buf}}
 
     def pre_physics_step(self, actions) -> None:
         reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)
