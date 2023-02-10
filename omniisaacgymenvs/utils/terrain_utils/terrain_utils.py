@@ -277,7 +277,7 @@ def stepping_stones_terrain(terrain, stone_size, stone_distance, max_height, pla
                 terrain.height_field_raw[start_x: stop_x, start_y: stop_y] = np.random.choice(height_range)
                 start_x += stone_size + stone_distance
             start_y += stone_size + stone_distance
-    elif terrain.width > terrain.length:
+    else:
         while start_x < terrain.width:
             stop_x = min(terrain.width, start_x + stone_size)
             start_y = np.random.randint(0, stone_size)

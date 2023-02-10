@@ -46,4 +46,7 @@ class QuadcopterView(ArticulationView):
             reset_xform_properties=False
         )
 
-        self.rotors = RigidPrimView(prim_paths_expr=f"/World/envs/.*/Quadcopter/rotor[0-3]", reset_xform_properties=False)
+        self.rotors = RigidPrimView(
+            prim_paths_expr="/World/envs/.*/Quadcopter/rotor[0-3]",
+            reset_xform_properties=False,
+        )

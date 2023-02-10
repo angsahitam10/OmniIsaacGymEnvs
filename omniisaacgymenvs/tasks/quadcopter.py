@@ -85,14 +85,18 @@ class QuadcopterTask(RLTask):
         return
 
     def get_copter(self):
-        copter = Quadcopter(prim_path=self.default_zero_env_path + "/Quadcopter", name="quadcopter", translation=self._copter_position)
+        copter = Quadcopter(
+            prim_path=f"{self.default_zero_env_path}/Quadcopter",
+            name="quadcopter",
+            translation=self._copter_position,
+        )
         self._sim_config.apply_articulation_settings("copter", get_prim_at_path(copter.prim_path), self._sim_config.parse_actor_config("copter"))
     
     def get_target(self):
         radius = 0.05
         color = torch.tensor([1, 0, 0])
         ball = DynamicSphere(
-            prim_path=self.default_zero_env_path + "/ball", 
+            prim_path=f"{self.default_zero_env_path}/ball",
             name="target_0",
             radius=radius,
             color=color,
@@ -116,12 +120,7 @@ class QuadcopterTask(RLTask):
         self.obs_buf[..., 10:13] = root_angvels / math.pi
         self.obs_buf[..., 13:21] = self.dof_pos
 
-        observations = {
-            self._copters.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {self._copters.name: {"obs_buf": self.obs_buf}}
 
     def pre_physics_step(self, actions) -> None:
         reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)

@@ -36,10 +36,10 @@ import torch
 class SimConfig():
     def __init__(self, config: dict = None):
         if config is None:
-            config = dict()
+            config = {}
 
         self._config = config
-        self._cfg = config.get("task", dict())
+        self._cfg = config.get("task", {})
         self._parse_config()
 
         if self._config["test"] == True:
@@ -82,8 +82,6 @@ class SimConfig():
         if self._sim_params["use_gpu_pipeline"]:
             self._physx_params["use_gpu"] = True
 
-        # device should be in sync with pipeline
-        if self._sim_params["use_gpu_pipeline"]:
             self._config["sim_device"] = f"cuda:{self._config['device_id']}"
         else:
             self._config["sim_device"] = "cpu"
@@ -118,9 +116,8 @@ class SimConfig():
                 return actor_params[attribute_name]
             elif actor_params["override_usd_defaults"] and not attribute.IsAuthored():
                 return self._physx_params[attribute_name]
-        else:
-            if actor_params[attribute_name] != -1:
-                return actor_params[attribute_name]
+        elif actor_params[attribute_name] != -1:
+            return actor_params[attribute_name]
 
     @property
     def sim_params(self):
@@ -143,24 +140,21 @@ class SimConfig():
 
     def _get_physx_collision_api(self, prim):
         from pxr import UsdPhysics, PhysxSchema
-        physx_collision_api = PhysxSchema.PhysxCollisionAPI(prim)
-        if not physx_collision_api:
-            physx_collision_api = PhysxSchema.PhysxCollisionAPI.Apply(prim)
-        return physx_collision_api
+        return PhysxSchema.PhysxCollisionAPI(
+            prim
+        ) or PhysxSchema.PhysxCollisionAPI.Apply(prim)
 
     def _get_physx_rigid_body_api(self, prim):
         from pxr import UsdPhysics, PhysxSchema
-        physx_rb_api = PhysxSchema.PhysxRigidBodyAPI(prim)
-        if not physx_rb_api:
-            physx_rb_api = PhysxSchema.PhysxRigidBodyAPI.Apply(prim)
-        return physx_rb_api
+        return PhysxSchema.PhysxRigidBodyAPI(
+            prim
+        ) or PhysxSchema.PhysxRigidBodyAPI.Apply(prim)
 
     def _get_physx_articulation_api(self, prim):
         from pxr import UsdPhysics, PhysxSchema
-        arti_api = PhysxSchema.PhysxArticulationAPI(prim)
-        if not arti_api:
-            arti_api = PhysxSchema.PhysxArticulationAPI.Apply(prim)
-        return arti_api
+        return PhysxSchema.PhysxArticulationAPI(
+            prim
+        ) or PhysxSchema.PhysxArticulationAPI.Apply(prim)
 
     def set_contact_offset(self, name, prim, value=None):
         physx_collision_api = self._get_physx_collision_api(prim)
@@ -358,7 +352,7 @@ class SimConfig():
         is_articulation = False
         # check if is articulation
         prims = [prim]
-        while len(prims) > 0:
+        while prims:
             prim = prims.pop(0)
             articulation_api = UsdPhysics.ArticulationRootAPI.Get(stage, prim.GetPath())
             physx_articulation_api = PhysxSchema.PhysxArticulationAPI.Get(stage, prim.GetPath())
@@ -372,7 +366,7 @@ class SimConfig():
 
         # parse through all children prims
         prims = [prim]
-        while len(prims) > 0:
+        while prims:
             prim = prims.pop(0)
             rb = UsdPhysics.RigidBodyAPI(prim)
             collision_body = UsdPhysics.CollisionAPI(prim)
@@ -400,4 +394,4 @@ class SimConfig():
                 self.set_articulation_stabilization_threshold(name, prim, cfg["stabilization_threshold"])
 
             children_prims = prim.GetPrim().GetChildren()
-            prims = prims + children_prims
+            prims += children_prims

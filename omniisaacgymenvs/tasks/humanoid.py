@@ -71,7 +71,11 @@ class HumanoidLocomotionTask(LocomotionTask):
         return
 
     def get_humanoid(self):
-        humanoid = Humanoid(prim_path=self.default_zero_env_path + "/Humanoid", name="Humanoid", translation=self._humanoid_positions)
+        humanoid = Humanoid(
+            prim_path=f"{self.default_zero_env_path}/Humanoid",
+            name="Humanoid",
+            translation=self._humanoid_positions,
+        )
         self._sim_config.apply_articulation_settings("Humanoid", get_prim_at_path(humanoid.prim_path), 
             self._sim_config.parse_actor_config("Humanoid"))
 
@@ -121,7 +125,9 @@ class HumanoidLocomotionTask(LocomotionTask):
 def get_dof_at_limit_cost(obs_buf, motor_effort_ratio, joints_at_limit_cost_scale):
     # type: (Tensor, Tensor, float) -> Tensor
     scaled_cost = joints_at_limit_cost_scale * (torch.abs(obs_buf[:, 12:33]) - 0.98) / 0.02
-    dof_at_limit_cost = torch.sum(
-        (torch.abs(obs_buf[:, 12:33]) > 0.98) * scaled_cost * motor_effort_ratio.unsqueeze(0), dim=-1
+    return torch.sum(
+        (torch.abs(obs_buf[:, 12:33]) > 0.98)
+        * scaled_cost
+        * motor_effort_ratio.unsqueeze(0),
+        dim=-1,
     )
-    return dof_at_limit_cost

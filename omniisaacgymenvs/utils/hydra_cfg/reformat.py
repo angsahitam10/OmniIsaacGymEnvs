@@ -30,15 +30,12 @@
 from omegaconf import DictConfig, OmegaConf
 from typing import Dict
 
-def omegaconf_to_dict(d: DictConfig)->Dict:
+def omegaconf_to_dict(d: DictConfig) -> Dict:
     """Converts an omegaconf DictConfig to a python Dict, respecting variable interpolation."""
-    ret = {}
-    for k, v in d.items():
-        if isinstance(v, DictConfig):
-            ret[k] = omegaconf_to_dict(v)
-        else:
-            ret[k] = v
-    return ret
+    return {
+        k: omegaconf_to_dict(v) if isinstance(v, DictConfig) else v
+        for k, v in d.items()
+    }
 
 def print_dict(val, nesting: int = -4, start: bool = True):
     """Outputs a nested dictionory."""

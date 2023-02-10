@@ -46,7 +46,7 @@ class AllegroHandView(ArticulationView):
             name=name,
             reset_xform_properties=False
         )
-        self._actuated_dof_indices = list()
+        self._actuated_dof_indices = []
 
     @property
     def actuated_dof_indices(self):
@@ -54,4 +54,4 @@ class AllegroHandView(ArticulationView):
 
     def initialize(self, physics_sim_view):
         super().initialize(physics_sim_view)
-        self._actuated_dof_indices = [i for i in range(self.num_dof)]
+        self._actuated_dof_indices = list(range(self.num_dof))

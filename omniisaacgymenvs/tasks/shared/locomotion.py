@@ -93,12 +93,7 @@ class LocomotionTask(RLTask):
             self.inv_start_rot, self.basis_vec0, self.basis_vec1, self.dof_limits_lower, self.dof_limits_upper, self.dof_vel_scale,
             sensor_force_torques, self._num_envs, self.contact_force_scale, self.actions, self.angular_velocity_scale
         )
-        observations = {
-            self._robots.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {self._robots.name: {"obs_buf": self.obs_buf}}
 
     def pre_physics_step(self, actions) -> None:
         reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)

@@ -63,9 +63,11 @@ class ShadowHandView(ArticulationView):
                                      'robot0_LFJ3', 'robot0_LFJ2', 'robot0_LFJ1', 
                                      'robot0_THJ4', 'robot0_THJ3', 'robot0_THJ2', 'robot0_THJ1', 'robot0_THJ0',
                                     ]
-        self._actuated_dof_indices = list()
-        for joint_name in self.actuated_joint_names:
-            self._actuated_dof_indices.append(self.get_dof_index(joint_name))
+        self._actuated_dof_indices = []
+        self._actuated_dof_indices.extend(
+            self.get_dof_index(joint_name)
+            for joint_name in self.actuated_joint_names
+        )
         self._actuated_dof_indices.sort()
 
         limit_stiffness = torch.tensor([30.0] * self.num_fixed_tendons, device=self._device)

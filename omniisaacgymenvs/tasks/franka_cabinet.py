@@ -95,11 +95,13 @@ class FrankaCabinetTask(RLTask):
         return
 
     def get_franka(self):
-        franka = Franka(prim_path=self.default_zero_env_path + "/franka", name="franka")
+        franka = Franka(
+            prim_path=f"{self.default_zero_env_path}/franka", name="franka"
+        )
         self._sim_config.apply_articulation_settings("franka", get_prim_at_path(franka.prim_path), self._sim_config.parse_actor_config("franka"))
 
     def get_cabinet(self):
-        cabinet = Cabinet(self.default_zero_env_path + "/cabinet", name="cabinet")
+        cabinet = Cabinet(f"{self.default_zero_env_path}/cabinet", name="cabinet")
         self._sim_config.apply_articulation_settings("cabinet", get_prim_at_path(cabinet.prim_path), self._sim_config.parse_actor_config("cabinet"))        
 
     def get_props(self):
@@ -126,19 +128,19 @@ class FrankaCabinetTask(RLTask):
                 prop_count += 1
 
         prop = DynamicCuboid(
-            prim_path=self.default_zero_env_path + "/prop/prop_0",
+            prim_path=f"{self.default_zero_env_path}/prop/prop_0",
             name="prop",
             color=prop_color,
             size=prop_size,
-            density=100.0
+            density=100.0,
         )
         self._sim_config.apply_articulation_settings("prop", get_prim_at_path(prop.prim_path), self._sim_config.parse_actor_config("prop"))  
 
         prop_paths = [f"{self.default_zero_env_path}/prop/prop_{j}" for j in range(self.num_props)]
         prop_cloner.clone(
-            source_prim_path=self.default_zero_env_path + "/prop/prop_0", 
-            prim_paths=prop_paths, 
-            positions=np.array(prop_pos)+drawer_pos.numpy()
+            source_prim_path=f"{self.default_zero_env_path}/prop/prop_0",
+            prim_paths=prop_paths,
+            positions=np.array(prop_pos) + drawer_pos.numpy(),
         )
 
     def init_data(self) -> None:
@@ -147,7 +149,7 @@ class FrankaCabinetTask(RLTask):
             world_transform = xformable.ComputeLocalToWorldTransform(0)
             world_pos = world_transform.ExtractTranslation()
             world_quat = world_transform.ExtractRotationQuat()
-            
+
             px = world_pos[0] - env_pos[0]
             py = world_pos[1] - env_pos[1]
             pz = world_pos[2] - env_pos[2]
@@ -168,18 +170,24 @@ class FrankaCabinetTask(RLTask):
         )
 
         finger_pose = torch.zeros(7, device=self._device)
-        finger_pose[0:3] = (lfinger_pose[0:3] + rfinger_pose[0:3]) / 2.0
+        finger_pose[:3] = (lfinger_pose[:3] + rfinger_pose[:3]) / 2.0
         finger_pose[3:7] = lfinger_pose[3:7]
-        hand_pose_inv_rot, hand_pose_inv_pos = (tf_inverse(hand_pose[3:7], hand_pose[0:3]))
+        hand_pose_inv_rot, hand_pose_inv_pos = tf_inverse(
+            hand_pose[3:7], hand_pose[:3]
+        )
 
         grasp_pose_axis = 1
-        franka_local_grasp_pose_rot, franka_local_pose_pos = tf_combine(hand_pose_inv_rot, hand_pose_inv_pos, finger_pose[3:7], finger_pose[0:3])
+        franka_local_grasp_pose_rot, franka_local_pose_pos = tf_combine(
+            hand_pose_inv_rot, hand_pose_inv_pos, finger_pose[3:7], finger_pose[:3]
+        )
         franka_local_pose_pos += torch.tensor([0, 0.04, 0], device=self._device)
         self.franka_local_grasp_pos = franka_local_pose_pos.repeat((self._num_envs, 1))
         self.franka_local_grasp_rot = franka_local_grasp_pose_rot.repeat((self._num_envs, 1))
 
         drawer_local_grasp_pose = torch.tensor([0.3, 0.01, 0.0, 1.0, 0.0, 0.0, 0.0], device=self._device)
-        self.drawer_local_grasp_pos = drawer_local_grasp_pose[0:3].repeat((self._num_envs, 1))
+        self.drawer_local_grasp_pos = drawer_local_grasp_pose[:3].repeat(
+            (self._num_envs, 1)
+        )
         self.drawer_local_grasp_rot = drawer_local_grasp_pose[3:7].repeat((self._num_envs, 1))
 
         self.gripper_forward_axis = torch.tensor([0, 0, 1], device=self._device, dtype=torch.float).repeat((self._num_envs, 1))
@@ -234,12 +242,7 @@ class FrankaCabinetTask(RLTask):
             dim=-1,
         )
 
-        observations = {
-            self._frankas.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {self._frankas.name: {"obs_buf": self.obs_buf}}
 
     def pre_physics_step(self, actions) -> None:
         reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)

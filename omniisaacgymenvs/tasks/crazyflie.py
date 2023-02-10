@@ -128,8 +128,11 @@ class CrazyflieTask(RLTask):
         return
 
     def get_crazyflie(self):
-        copter = Crazyflie(prim_path=self.default_zero_env_path + "/Crazyflie", name="crazyflie",
-                           translation=self._crazyflie_position)
+        copter = Crazyflie(
+            prim_path=f"{self.default_zero_env_path}/Crazyflie",
+            name="crazyflie",
+            translation=self._crazyflie_position,
+        )
         self._sim_config.apply_articulation_settings("crazyflie", get_prim_at_path(copter.prim_path),
                                                      self._sim_config.parse_actor_config("crazyflie"))
 
@@ -137,11 +140,12 @@ class CrazyflieTask(RLTask):
         radius = 0.2
         color = torch.tensor([1, 0, 0])
         ball = DynamicSphere(
-            prim_path=self.default_zero_env_path + "/ball",
+            prim_path=f"{self.default_zero_env_path}/ball",
             translation=self._ball_position,
             name="target_0",
             radius=radius,
-            color=color)
+            color=color,
+        )
         self._sim_config.apply_articulation_settings("ball", get_prim_at_path(ball.prim_path),
                                                      self._sim_config.parse_actor_config("ball"))
         ball.set_collision_enabled(False)
@@ -169,12 +173,7 @@ class CrazyflieTask(RLTask):
         self.obs_buf[..., 12:15] = root_linvels
         self.obs_buf[..., 15:18] = root_angvels
 
-        observations = {
-            self._copters.name: {
-                "obs_buf": self.obs_buf
-            }
-        }
-        return observations
+        return {self._copters.name: {"obs_buf": self.obs_buf}}
 
     def pre_physics_step(self, actions) -> None:
         reset_env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)
